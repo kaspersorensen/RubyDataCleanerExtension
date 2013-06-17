@@ -33,8 +33,14 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.jruby</groupId>
-			<artifactId>jruby</artifactId>
+			<artifactId>jruby-core</artifactId>
 			<version>1.7.4</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>joda-time</artifactId>
+					<groupId>joda-time</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
