@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.eobjects.analyzer.beans.api.Categorized;
 import org.eobjects.analyzer.beans.api.Close;
 import org.eobjects.analyzer.beans.api.Configured;
 import org.eobjects.analyzer.beans.api.Initialize;
@@ -13,6 +14,7 @@ import org.eobjects.analyzer.beans.api.OutputColumns;
 import org.eobjects.analyzer.beans.api.StringProperty;
 import org.eobjects.analyzer.beans.api.Transformer;
 import org.eobjects.analyzer.beans.api.TransformerBean;
+import org.eobjects.analyzer.beans.categories.ScriptingCategory;
 import org.eobjects.analyzer.data.InputColumn;
 import org.eobjects.analyzer.data.InputRow;
 import org.jruby.Ruby;
@@ -21,7 +23,8 @@ import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.builtin.IRubyObject;
 
 @TransformerBean("Ruby transformer (simple)")
-public class SimpleRubyTransformer implements Transformer<Object> {
+@Categorized(ScriptingCategory.class)
+public class SimpleRubyTransformer implements Transformer<String> {
 
     private final Object[] emptyParams = {};
 
@@ -65,7 +68,7 @@ public class SimpleRubyTransformer implements Transformer<Object> {
         }
     }
 
-    public Object[] transform(InputRow row) {
+    public String[] transform(InputRow row) {
         Map<String, Object> values = new LinkedHashMap<String, Object>();
         for (int i = 0; i < _columns.length; i++) {
             Object value = row.getValue(_columns[i]);
@@ -74,7 +77,7 @@ public class SimpleRubyTransformer implements Transformer<Object> {
         }
         final Object[] parameters = new Object[] { values };
         Object result = JavaEmbedUtils.invokeMethod(_ruby, _rubyTransformer, "transform", parameters, Object.class);
-        return new Object[] { result };
+        return new String[] { String.valueOf(result) };
     }
 
 }
