@@ -11,7 +11,7 @@ public class SimpleRubyTransformerTest extends TestCase {
         String code = new SimpleRubyTransformer()._code;
         assertNotNull(code);
     }
-    
+
     public void testInitializeAndClose() throws Exception {
         SimpleRubyTransformer transformer = new SimpleRubyTransformer();
         transformer.foo = new MockInputColumn<String>("foo");
@@ -21,13 +21,13 @@ public class SimpleRubyTransformerTest extends TestCase {
                 fail("shouldn't happen");
             }
         };
-        
+
         assertNull(transformer.getRubyTransformer());
-        
+
         transformer.initialize();
-        
+
         assertNotNull(transformer.getRubyTransformer());
-        
+
         transformer.close();
     }
 }
