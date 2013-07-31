@@ -22,8 +22,11 @@ import org.eobjects.analyzer.data.InputRow;
 import org.eobjects.datacleaner.util.ResourceManager;
 import org.eobjects.metamodel.util.FileHelper;
 import org.jruby.Ruby;
+import org.jruby.RubyArray;
 import org.jruby.RubyRuntimeAdapter;
+import org.jruby.RubyString;
 import org.jruby.javasupport.JavaEmbedUtils;
+import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,15 +43,15 @@ public class SimpleRubyTransformer implements Transformer<Object> {
     String _code = getInitialCode();
 
     @Configured
-    InputColumn<?> foo;
+    InputColumn<?>[] _inputValues;
 
     @Inject
     @Provided
     OutputRowCollector _rowCollector;
 
     private Ruby _ruby;
+    private IRubyObject _transformerObject;
     private RubyRuntimeAdapter _runtimeAdapter;
-    private RubyTransformer _rubyTransformer;
 
     public OutputColumns getOutputColumns() {
         return new OutputColumns("Ruby output");
@@ -74,23 +77,21 @@ public class SimpleRubyTransformer implements Transformer<Object> {
     public void initialize() {
         _ruby = JavaEmbedUtils.initialize(Collections.EMPTY_LIST);
         _runtimeAdapter = JavaEmbedUtils.newRuntimeAdapter();
-        
+
         // load the class def
         _runtimeAdapter.eval(_ruby, _code);
-        
-        IRubyObject rubyObject = _runtimeAdapter.eval(_ruby, "Transformer.new()");
-        
-        logger.info("Evaluated Ruby code to: {}", rubyObject);
-        
-        _rubyTransformer = (RubyTransformer) JavaEmbedUtils.rubyToJava(_ruby, rubyObject, RubyTransformer.class);
 
-        _rubyTransformer.init();
+        _transformerObject = _runtimeAdapter.eval(_ruby, "Transformer.new()");
+
+        logger.info("Evaluated Ruby code to: {}", _transformerObject);
+
+        JavaEmbedUtils.invokeMethod(_ruby, _transformerObject, "init", new Object[0], IRubyObject.class);
     }
 
     @Close
     public void close() {
         try {
-            _rubyTransformer.close();
+            JavaEmbedUtils.invokeMethod(_ruby, _transformerObject, "close", new Object[0], IRubyObject.class);
         } catch (Exception e) {
             logger.error("Failed to call close() on RubyTransformer", e);
         }
@@ -103,11 +104,22 @@ public class SimpleRubyTransformer implements Transformer<Object> {
     }
 
     public Object[] transform(InputRow row) {
-        _rubyTransformer.transform(row, _rowCollector);
+        Object[] inputValues = new Object[_inputValues.length];
+        for (int i = 0; i < inputValues.length; i++) {
+            Object value = row.getValue(_inputValues[i]);
+            inputValues[i] = value;
+        }
+        
+        IRubyObject[] rubyInputValues = JavaUtil.convertJavaArrayToRuby(_ruby, inputValues);
+        IRubyObject rubyOutputCollector = JavaEmbedUtils.javaToRuby(_ruby, _rowCollector);
+        
+        Object[] arguments = new Object[] {rubyInputValues , rubyOutputCollector};
+        
+        JavaEmbedUtils.invokeMethod(_ruby, _transformerObject, "transform", arguments, Object.class);
         return null;
     }
 
-    public RubyTransformer getRubyTransformer() {
-        return _rubyTransformer;
+    public IRubyObject getTransformerObject() {
+        return _transformerObject;
     }
 }
