@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension xmlns="http://eobjects.org/datacleaner/extension/1.0">
+	<name>Ruby scripting for DataCleaner</name>
+	<package>com.hi.datacleaner.ruby</package>
+	<description>Allows you to use the power of the Ruby language in DataCleaner.</description>
+	<icon>com/hi/datacleaner/ruby/RubyExtension.png</icon>
+</extension>

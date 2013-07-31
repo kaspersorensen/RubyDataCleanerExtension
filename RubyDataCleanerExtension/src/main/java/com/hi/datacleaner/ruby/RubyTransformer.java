@@ -5,7 +5,7 @@ import org.eobjects.analyzer.data.InputRow;
 
 public interface RubyTransformer {
 
-    void initialize();
+    void init();
 
     void close();
 
